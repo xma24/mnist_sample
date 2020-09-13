@@ -14,10 +14,7 @@ import pickle
 
 class CustomizeDataset(Dataset):
     def __init__(self, data_dict, transform=None):
-        # self.data = torch.FloatTensor(data.values.astype('float'))
-
         self.transform = transform
-
         self.data = data_dict["data"]
         self.labels = data_dict["labels"]
 
@@ -25,12 +22,7 @@ class CustomizeDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
-
-        # if self.transform is not None:
-        #     self.data = [self.transform(i) for i in self.data]
-
         data_ret = self.data[index]
-        # print("data_ret: {}, {}".format(data_ret, data_ret.shape))
         labels_ret = self.labels[index]
 
         if self.transform is not None:
@@ -56,7 +48,6 @@ def parameter_setting(cuda_index):
 
     parser.add_argument('--using_torch_dataset', default=False)
     parser.add_argument('--data_path', default="./data/")
-
 
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
@@ -88,17 +79,8 @@ class LightningMNISTClassifier(pl.LightningModule):
         self.do = torch.nn.Dropout(p=0.5)
 
     def forward(self, x):
-        # batch_size, channels, width, height = x.size()
-        # print("x shape: {}".format(x.size()))
 
-        x0 = x[1]
-        for i in range(x0.shape[0]):
-            print("x0[i]: {}".format(x0[i]))
-        #
-        # (b, 1, 28, 28) -> (b, 1*28*28)
         x = x.view(-1, 28 * 28)
-        print("x shape: {}, {}".format(x, x.max()))
-
 
         # layer 1
         x = self.layer_1(x)
@@ -127,52 +109,34 @@ class LightningMNISTClassifier(pl.LightningModule):
 
         # transformations = transforms.Compose([transforms.Scale(32),transforms.ToTensor()])
 
-
         if self.args.using_torch_dataset:
             mnist_train_data = MNIST(os.getcwd(), train=True, download=True, transform=transform)
 
             train_data_dict = {}
             train_data = mnist_train_data.data
             train_labels = mnist_train_data.targets
-            # print("train_data: {}, {}".format(train_data.max(), train_data.shape))
-            # print("train_labels: {}, {}".format(train_labels, train_labels.shape))
 
-            train_data_list = [ train_data[i].numpy() for i in range(train_data.shape[0])]
-            train_labels_list = [ train_labels[i].numpy() for i in range(train_data.shape[0])]
-
-            # train_data_list = np.array(train_data.numpy(), dtype=np.float32).tolist()
-            # train_labels_list = np.array(train_labels.numpy(), dtype=np.float32).tolist()
-
-            print("train_data_list[6]: {}, {}".format(train_data_list[6], train_data_list[6].shape))
-
-
+            train_data_list = [train_data[i].numpy() for i in range(train_data.shape[0])]
+            train_labels_list = [train_labels[i].numpy() for i in range(train_data.shape[0])]
 
             train_data_dict["data"] = train_data_list
-            print("train_data_dict[data]: {}".format(len(train_data_dict["data"])))
             train_data_dict["labels"] = train_labels_list
-
 
             mnist_test_data = MNIST(os.getcwd(), train=False, download=True, transform=transform)
 
             test_data_dict = {}
             test_data = mnist_test_data.data
             test_labels = mnist_test_data.targets
-            # print("test_data: {}, {}".format(test_data.max(), test_data.shape))
-            # print("test_labels: {}, {}".format(test_labels, test_labels.shape))
 
-
-            test_data_list = [ test_data[i].numpy() for i in range(test_data.shape[0])]
-            test_labels_list = [ test_labels[i].numpy() for i in range(test_data.shape[0])]
-
-            # test_data_list = np.array(test_data.numpy(), dtype=np.float32).tolist()
-            # test_labels_list = np.array(test_labels.numpy(), dtype=np.float32).tolist()
+            test_data_list = [test_data[i].numpy() for i in range(test_data.shape[0])]
+            test_labels_list = [test_labels[i].numpy() for i in range(test_data.shape[0])]
 
             test_data_dict["data"] = test_data_list
             test_data_dict["labels"] = test_labels_list
 
             data_dict = {}
 
-            data_dict["train"] =  train_data_dict
+            data_dict["train"] = train_data_dict
             data_dict["test"] = test_data_dict
 
             with open(args.data_path + args.name + ".pk", "wb") as pk_file:
@@ -188,8 +152,6 @@ class LightningMNISTClassifier(pl.LightningModule):
 
             train_data_dict = data_dict["train"]
             test_data_dict = data_dict["test"]
-
-
 
             train_dataset = CustomizeDataset(train_data_dict, transform=transform)
             test_dataset = CustomizeDataset(test_data_dict, transform=transform)
@@ -218,8 +180,6 @@ class LightningMNISTClassifier(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-        # print("x: {}, {}".format(x.max(), x.shape))
-        # print("train_labels: {}, {}".format(train_labels, train_labels.shape))
 
         logits = self.forward(x)
 
@@ -297,7 +257,6 @@ cuda_index = "0"
 args = parameter_setting(cuda_index)
 # args.using_torch_dataset = True
 args.using_torch_dataset = False
-
 
 model = LightningMNISTClassifier(args)
 trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
