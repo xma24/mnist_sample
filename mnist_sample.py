@@ -11,6 +11,9 @@ from torchvision import datasets, transforms
 import numpy as np
 import pickle
 
+import subprocess
+import zipfile
+
 
 class CustomizeDataset(Dataset):
     def __init__(self, data_dict, transform=None):
@@ -39,27 +42,34 @@ import os
 
 def parameter_setting(cuda_index):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--name', type=str, default='usps')
-    parser.add_argument('--batch_size', type=int, default=2048)
+
+    ## dynamic
+    parser.set_defaults(gpus='0', max_epochs=2000)
+    parser.add_argument('--batch_size', default=64)
     parser.add_argument('--no_cuda', default=False)
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--epoch_number', type=int, default=1000)
     parser.add_argument('--lr', default=0.001)
 
-    parser.add_argument('--using_torch_dataset', default=False)
-    parser.add_argument('--data_path', default="./data/")
+    ## fixed
+    parser.add_argument('--data_root', default="/data/xma24/", type=str)
+    parser.add_argument('--pytorch_data_path', default="./pytorch_data/")
+    parser.add_argument('--result_folder', default="./output/", type=str)
+    parser.add_argument('--download_require', default=True)
+    parser.add_argument('--transform', default=None)
 
     args = parser.parse_args()
-    use_cuda = not args.no_cuda and torch.cuda.is_available()
 
-    os.makedirs(args.data_path, exist_ok=True)
+    import os
+    os.makedirs(args.result_folder, exist_ok=True)
+    os.makedirs(args.data_root, exist_ok=True)
+    os.makedirs(args.pytorch_data_path, exist_ok=True)
 
+
+    args.use_cuda = not args.no_cuda and torch.cuda.is_available()
     torch.manual_seed(args.seed)
 
-    args.device = torch.device("cuda:" + str(cuda_index) if use_cuda else "cpu")
-    print("using device: {} ".format(args.device))
-
-    args.kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+    args.kwargs = {'num_workers': 8, 'pin_memory': True} if args.use_cuda else {}
 
     return args
 
@@ -109,7 +119,7 @@ class LightningMNISTClassifier(pl.LightningModule):
 
         # transformations = transforms.Compose([transforms.Scale(32),transforms.ToTensor()])
 
-        if self.args.using_torch_dataset:
+        if not self.args.drive_download_require:
             mnist_train_data = MNIST(os.getcwd(), train=True, download=True, transform=transform)
 
             train_data_dict = {}
@@ -139,7 +149,7 @@ class LightningMNISTClassifier(pl.LightningModule):
             data_dict["train"] = train_data_dict
             data_dict["test"] = test_data_dict
 
-            with open(args.data_path + args.name + ".pk", "wb") as pk_file:
+            with open(args.pytorch_data_path + args.dataset_name + ".pk", "wb") as pk_file:
                 pickle.dump(data_dict, pk_file)
 
             train_dataset = mnist_train_data
@@ -147,17 +157,53 @@ class LightningMNISTClassifier(pl.LightningModule):
             test_dataset = mnist_test_data
 
         else:
-            with open(args.data_path + args.name + ".pk", "rb") as pk_file:
-                data_dict = pickle.load(pk_file)
+            file_name = os.path.join(args.data_root, args.dataset_name + ".zip")
+            file_folder = os.path.join(args.data_root, args.dataset_name)
 
-            train_data_dict = data_dict["train"]
-            test_data_dict = data_dict["test"]
+            ## ****************************************************Downloading data ***************************************
+            ## file already exists
+            if os.path.exists(file_name):
+                ## folder already exists
+                if os.path.exists(file_folder):
+                    print("Data is ready")
+                ## folder not exists; extract it
+                else:
+                    os.makedirs(file_folder, exist_ok=True)
+                    with zipfile.ZipFile(file_name, "r") as zip_ref:
+                        zip_ref.extractall(file_folder)
+                    print("{}".format("Finish Extracting the Dataset ... "))
+            ## file not exists; download it
+            else:
+                print("{}".format("Downloading the Dataset ... "))
+                subprocess.call(["sh", "./datasets_download_" + args.dataset_name + ".sh"])
+                print("{}".format("Finish Downloading the Dataset ... "))
+                os.makedirs(file_folder, exist_ok=True)
+                with zipfile.ZipFile(file_name, 'r') as zip_ref:
+                    zip_ref.extractall(file_folder)
+                print("{}".format("Finish Extracting the Dataset ... "))
 
-            train_dataset = CustomizeDataset(train_data_dict, transform=transform)
-            test_dataset = CustomizeDataset(test_data_dict, transform=transform)
+            with open(os.path.join(file_folder, args.dataset_name, args.dataset_name + ".pk"), "rb") as file:
+                train_data = pickle.load(file)
+                train_labels = pickle.load(file)
+                test_data = pickle.load(file)
+                test_labels = pickle.load(file)
 
-            # train_dataset = CustomizeDataset(train_data_dict)
-            # test_dataset = CustomizeDataset(test_data_dict)
+            # print("train_data: {}, {}".format(train_data, train_data.max()))
+
+            train_dict = {}
+            train_dict["data"] = np.array(train_data)
+            train_dict["labels"] = np.array(train_labels)
+
+            test_dict = {}
+            test_dict["data"] = np.array(test_data)
+            test_dict["labels"] = np.array(test_labels)
+
+            train_dataset = CustomizeDataset(train_dict, transform=args.transform)
+            # print("{}".format(train_dataset))
+            test_dataset = CustomizeDataset(test_dict, transform=args.transform)
+
+            train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size)
+            test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size)
 
         self.mnist_train_loader = DataLoader(train_dataset, batch_size=self.args.batch_size, shuffle=True)
         self.mnist_test_loader = DataLoader(test_dataset, batch_size=self.args.batch_size)
@@ -253,12 +299,29 @@ class LightningMNISTClassifier(pl.LightningModule):
 
 
 # train
+
+
 cuda_index = "0"
 args = parameter_setting(cuda_index)
-# args.using_torch_dataset = True
-args.using_torch_dataset = False
+# args.drive_download_require = False
+args.drive_download_require = True
+args.project_name = "mnist_mlp_pl_1"
+args.expr_index = 1
+args.layer_number = 3
+args.dataset_name = "MNIST"
+
+from pytorch_lightning.loggers import TensorBoardLogger
+
+logger_name = "-".join(
+    ["p-", args.project_name, "e-", str(args.expr_index), "l_n-", str(args.layer_number), "d_n-", args.dataset_name])
+logger = TensorBoardLogger("lightning_logs", name=logger_name)
 
 model = LightningMNISTClassifier(args)
 trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
 
 trainer.fit(model)
+
+### ************************ Changes ************************
+## custormize the tensorboard logger
+## add "tensorboard settings"
+## using google drive to download data automatically
