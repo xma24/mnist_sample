@@ -1,6 +1,5 @@
 import os
 
-folder1 = "../f16graph/ungnn/"
 port_number = 10001
 
 os.system(
