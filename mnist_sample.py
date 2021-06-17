@@ -52,7 +52,7 @@ def parameter_setting(cuda_index):
     parser.add_argument('--lr', default=0.001)
 
     ## fixed
-    parser.add_argument('--data_root', default="/data/xma24/", type=str)
+    parser.add_argument('--data_root', default="./datasets/", type=str)
     parser.add_argument('--pytorch_data_path', default="./pytorch_data/")
     parser.add_argument('--result_folder', default="./output/", type=str)
     parser.add_argument('--download_require', default=True)
