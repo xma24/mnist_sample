@@ -5,7 +5,6 @@ import pickle
 import subprocess
 import zipfile
 import numpy as np
-
 import pytorch_lightning as pl
 import torch
 from torch import nn
@@ -37,9 +36,16 @@ class CustomizeDataset(Dataset):
 
 
 def parameter_setting(cuda_index):
+    """[summary]
+
+    Args:
+        cuda_index ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     parser = argparse.ArgumentParser()
 
-    # dynamic
     parser.set_defaults(gpus='0', max_epochs=2000)
     parser.add_argument('--batch_size', default=64)
     parser.add_argument('--no_cuda', default=False)
@@ -47,7 +53,6 @@ def parameter_setting(cuda_index):
     parser.add_argument('--epoch_number', type=int, default=1000)
     parser.add_argument('--lr', default=0.001)
 
-    # fixed
     parser.add_argument('--data_root', default="./datasets/", type=str)
     parser.add_argument('--pytorch_data_path', default="./pytorch_data/")
     parser.add_argument('--result_folder', default="./output/", type=str)
