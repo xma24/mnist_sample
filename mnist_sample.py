@@ -36,25 +36,7 @@ class CustomizeDataset(Dataset):
 
 
 def parameter_setting(cuda_index):
-    """ This is to test github in VSco
 
-    Add more data 
-
-
-
-
-
-    Args:
-
-
-        cuda_index ([type]): The number of GPUs used to train the model
-
-
-    Returns:
-        args: args parser
-
-        SSS  sdlfjas tn ashdofhjsotno
-    """
     parser = argparse.ArgumentParser()
 
     parser.set_defaults(gpus='0', max_epochs=2000)
@@ -87,12 +69,6 @@ def parameter_setting(cuda_index):
 
 
 class ClsMNIST(pl.LightningModule):
-
-    """
-    Pytorch lightning model for classification task on MNIST dataset
-
-    Just the test
-    """
 
     def __init__(self, args):
         super(ClsMNIST, self).__init__()
@@ -360,8 +336,3 @@ model = ClsMNIST(args)
 trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
 
 trainer.fit(model)
-
-# ************************ Changes ************************
-# custormize the tensorboard logger
-# add "tensorboard settings"
-# using google drive to download data automatically
