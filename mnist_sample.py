@@ -36,13 +36,24 @@ class CustomizeDataset(Dataset):
 
 
 def parameter_setting(cuda_index):
-    """[summary]
+    """ This is to test github in VSco
+
+    Add more data 
+
+
+
+
 
     Args:
-        cuda_index ([type]): [description]
+
+
+        cuda_index ([type]): The number of GPUs used to train the model
+
 
     Returns:
-        [type]: [description]
+        args: args parser
+
+        SSS  sdlfjas tn ashdofhjsotno
     """
     parser = argparse.ArgumentParser()
 
@@ -76,6 +87,12 @@ def parameter_setting(cuda_index):
 
 
 class ClsMNIST(pl.LightningModule):
+
+    """
+    Pytorch lightning model for classification task on MNIST dataset
+
+    Just the test
+    """
 
     def __init__(self, args):
         super(ClsMNIST, self).__init__()
