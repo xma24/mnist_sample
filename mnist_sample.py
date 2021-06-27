@@ -108,6 +108,7 @@ class ClsMNIST(pl.LightningModule):
 
     def prepare_data(self):
 
+        # transform is used when applying dataloader
         transform = transforms.Compose([transforms.ToTensor(),
                                         transforms.Normalize((0.5,), (0.5,))])
 
@@ -313,9 +314,6 @@ class ClsMNIST(pl.LightningModule):
     #     tensorboard_logs = {'epoch_test_loss': epoch_test_loss,
     #                         "epoch_test_acc": epoch_test_acc}
     #     return {'epoch_test_loss': epoch_test_loss, 'log': tensorboard_logs}
-
-
-# train
 
 
 cuda_index = "0"
