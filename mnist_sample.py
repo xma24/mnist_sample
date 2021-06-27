@@ -36,7 +36,7 @@ class CustomizeDataset(Dataset):
 
 
 def parameter_setting(cuda_index):
-    """[summary]
+    """
 
     Args:
 
