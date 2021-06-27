@@ -39,7 +39,11 @@ def parameter_setting(cuda_index):
     """[summary]
 
     Args:
+<<<<<<< HEAD
         cuda_index ([type]): The number of GPUs used to train the model
+=======
+        cuda_index ([type]): [description]
+>>>>>>> eae3d2f527ee0574e39e1eeb6b71c4e4b40e2bb1
 
     Returns:
         [type]: [description]
