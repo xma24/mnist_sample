@@ -4,7 +4,6 @@ import os
 import pickle
 import subprocess
 import zipfile
-
 import numpy as np
 import pytorch_lightning as pl
 import torch
@@ -37,9 +36,20 @@ class CustomizeDataset(Dataset):
 
 
 def parameter_setting(cuda_index):
+    """[summary]
+
+    Args:
+<<<<<<< HEAD
+        cuda_index ([type]): The number of GPUs used to train the model
+=======
+        cuda_index ([type]): [description]
+>>>>>>> eae3d2f527ee0574e39e1eeb6b71c4e4b40e2bb1
+
+    Returns:
+        [type]: [description]
+    """
     parser = argparse.ArgumentParser()
 
-    # dynamic
     parser.set_defaults(gpus='0', max_epochs=2000)
     parser.add_argument('--batch_size', default=64)
     parser.add_argument('--no_cuda', default=False)
@@ -47,7 +57,6 @@ def parameter_setting(cuda_index):
     parser.add_argument('--epoch_number', type=int, default=1000)
     parser.add_argument('--lr', default=0.001)
 
-    # fixed
     parser.add_argument('--data_root', default="./datasets/", type=str)
     parser.add_argument('--pytorch_data_path', default="./pytorch_data/")
     parser.add_argument('--result_folder', default="./output/", type=str)
@@ -70,10 +79,10 @@ def parameter_setting(cuda_index):
     return args
 
 
-class LightningMNISTClassifier(pl.LightningModule):
+class ClsMNIST(pl.LightningModule):
 
     def __init__(self, args):
-        super(LightningMNISTClassifier, self).__init__()
+        super(ClsMNIST, self).__init__()
 
         self.args = args
 
@@ -334,7 +343,7 @@ logger_name = "-".join(
     ["p-", args.project_name, "e-", str(args.expr_index), "l_n-", str(args.layer_number), "d_n-", args.dataset_name])
 logger = TensorBoardLogger("lightning_logs", name=logger_name)
 
-model = LightningMNISTClassifier(args)
+model = ClsMNIST(args)
 trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
 
 trainer.fit(model)
