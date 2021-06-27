@@ -4,7 +4,6 @@ import os
 import pickle
 import subprocess
 import zipfile
-
 import numpy as np
 import pytorch_lightning as pl
 import torch
@@ -70,10 +69,10 @@ def parameter_setting(cuda_index):
     return args
 
 
-class LightningMNISTClassifier(pl.LightningModule):
+class ClsMNIST(pl.LightningModule):
 
     def __init__(self, args):
-        super(LightningMNISTClassifier, self).__init__()
+        super(ClsMNIST, self).__init__()
 
         self.args = args
 
@@ -334,7 +333,7 @@ logger_name = "-".join(
     ["p-", args.project_name, "e-", str(args.expr_index), "l_n-", str(args.layer_number), "d_n-", args.dataset_name])
 logger = TensorBoardLogger("lightning_logs", name=logger_name)
 
-model = LightningMNISTClassifier(args)
+model = ClsMNIST(args)
 trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
 
 trainer.fit(model)
