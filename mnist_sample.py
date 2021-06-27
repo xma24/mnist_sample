@@ -40,7 +40,7 @@ def parameter_setting(cuda_index):
     parser = argparse.ArgumentParser()
 
     parser.set_defaults(gpus='0', max_epochs=2000)
-    parser.add_argument('--batch_size', default=64)
+    parser.add_argument('--batch_size', default=128)
     parser.add_argument('--no_cuda', default=False)
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--epoch_number', type=int, default=1000)
