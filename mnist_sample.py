@@ -88,6 +88,10 @@ def parameter_setting(cuda_index):
 
 class ClsMNIST(pl.LightningModule):
 
+    """
+    Pytorch lightning model for classification task on MNIST dataset
+    """
+
     def __init__(self, args):
         super(ClsMNIST, self).__init__()
 
