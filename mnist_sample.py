@@ -36,7 +36,7 @@ class CustomizeDataset(Dataset):
 
 
 def parameter_setting(cuda_index):
-    """ This is to test github in VScode
+    """ This is to test github in VSco
 
     Add more data 
 
