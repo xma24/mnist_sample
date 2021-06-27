@@ -90,6 +90,8 @@ class ClsMNIST(pl.LightningModule):
 
     """
     Pytorch lightning model for classification task on MNIST dataset
+
+    Just the test
     """
 
     def __init__(self, args):
