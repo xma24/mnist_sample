@@ -39,10 +39,13 @@ def parameter_setting(cuda_index):
     """[summary]
 
     Args:
+
+
         cuda_index ([type]): The number of GPUs used to train the model
 
+
     Returns:
-        [type]: [description]
+        args: args parser
     """
     parser = argparse.ArgumentParser()
 
