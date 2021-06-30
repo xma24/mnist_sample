@@ -1,12 +1,14 @@
-from pytorch_lightning.loggers import TensorBoardLogger
 import argparse
 import os
 import pickle
 import subprocess
 import zipfile
+
 import numpy as np
 import pytorch_lightning as pl
 import torch
+from pytorch_lightning.loggers import TensorBoardLogger
+from rich import print
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, Dataset, random_split
@@ -282,7 +284,7 @@ if __name__ == "__main__":
 
     logger_name = "-".join(
         ["p-", args.project_name, "e-", str(args.expr_index), "l_n-", str(args.layer_number), "d_n-", args.dataset_name])
-    logger = TensorBoardLogger("lightning_logs", name=logger_name)
+    logger = TensorBoardLogger("../lightning_logs", name=logger_name)
 
     model = ClsMNIST(args)
     trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
