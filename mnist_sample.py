@@ -51,6 +51,8 @@ def parameter_setting():
     parser.add_argument('--data_root', default="../datasets/", type=str)
     parser.add_argument('--pytorch_data_path', default="../pytorch_data/")
     parser.add_argument('--result_folder', default="../output/", type=str)
+    parser.add_argument('--lightning_log_folder',
+                        default="../lightning_logs/", type=str)
     parser.add_argument('--download_require', default=True)
     parser.add_argument('--transform', default=None)
 
@@ -60,6 +62,7 @@ def parameter_setting():
     os.makedirs(args.result_folder, exist_ok=True)
     os.makedirs(args.data_root, exist_ok=True)
     os.makedirs(args.pytorch_data_path, exist_ok=True)
+    os.makedirs(args.lightning_log_folder, exist_ok=True)
 
     args.use_cuda = not args.no_cuda and torch.cuda.is_available()
     torch.manual_seed(args.seed)
@@ -284,7 +287,7 @@ if __name__ == "__main__":
 
     logger_name = "-".join(
         ["p-", args.project_name, "e-", str(args.expr_index), "l_n-", str(args.layer_number), "d_n-", args.dataset_name])
-    logger = TensorBoardLogger("../lightning_logs", name=logger_name)
+    logger = TensorBoardLogger(args.lightning_log_folder, name=logger_name)
 
     model = ClsMNIST(args)
     trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
