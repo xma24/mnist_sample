@@ -251,25 +251,10 @@ class ClsMNIST(pl.LightningModule):
 
         loss = self.cross_entropy_loss(logits, y)
 
-        logs = {'train_loss': loss, "train_acc": train_acc}
-        return {'loss': loss, "train_prediction": train_prediction, "train_y": y, 'log': logs}
+        self.log("train_loss", loss, on_step=False, on_epoch=True)
+        self.log("train_acc", train_acc, on_step=False, on_epoch=True)
 
-    def training_epoch_end(self, outputs):
-        epoch_train_loss = torch.stack(
-            [x["log"]['train_loss'] for x in outputs]).mean()
-        print("\n" + "*" * 10 + "epoch_train_loss: {} ".format(epoch_train_loss))
-
-        epoch_train_pred = torch.cat(
-            [x['train_prediction'] for x in outputs], dim=0)
-        epoch_train_y = torch.cat([x['train_y'] for x in outputs], dim=0)
-
-        epoch_train_acc = epoch_train_pred.eq(
-            epoch_train_y).view(-1).float().mean()
-        print("*" * 10 + "epoch_train_acc : {}\n ".format(epoch_train_acc))
-
-        tensorboard_logs = {
-            'epoch_train_loss': epoch_train_loss, "epoch_train_acc": epoch_train_acc}
-        return {'epoch_train_loss': epoch_train_loss, 'log': tensorboard_logs}
+        return {'loss': loss}
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
@@ -279,66 +264,27 @@ class ClsMNIST(pl.LightningModule):
         validation_prediction = logits.argmax(1)
 
         validation_loss = self.cross_entropy_loss(logits, y)
-        return {'validation_loss': validation_loss, "validation_prediction": validation_prediction, "validation_y": y}
+        validation_acc = validation_prediction.eq(y).view(-1).float().mean()
 
-    def validation_epoch_end(self, outputs):
-        epoch_validation_loss = torch.stack(
-            [x['validation_loss'] for x in outputs]).mean()
-        print("\n" + "*" * 10 +
-              "epoch_validation_loss: {} ".format(epoch_validation_loss))
-
-        epoch_validation_pred = torch.cat(
-            [x['validation_prediction'] for x in outputs], dim=0)
-        epoch_validation_y = torch.cat(
-            [x['validation_y'] for x in outputs], dim=0)
-        epoch_validation_acc = epoch_validation_pred.eq(
-            epoch_validation_y).view(-1).float().mean()
-
-        print("*" * 10 + "epoch_validation_acc : {}\n ".format(epoch_validation_acc))
-
-        tensorboard_logs = {'epoch_validation_loss': epoch_validation_loss,
-                            "epoch_validation_acc": epoch_validation_acc}
-        return {'epoch_validation_loss': epoch_validation_loss, 'log': tensorboard_logs}
-
-    # def test_step(self, batch, batch_idx):
-    #     x, y = batch
-    #     logits = self.forward(x)
-    #
-    #     test_prediction = logits.argmax(1)
-    #
-    #     test_loss = self.cross_entropy_loss(logits, y)
-    #     return {'test_loss': test_loss, "test_prediction": test_prediction, "test_y": y}
-    #
-    # def test_epoch_end(self, outputs):
-    #     epoch_test_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
-    #     print("\n" + "*" * 10 + "epoch_test_loss: {} ".format(epoch_test_loss))
-    #
-    #     epoch_test_pred = torch.cat([x['test_prediction'] for x in outputs], dim=0)
-    #     epoch_test_y = torch.cat([x['test_y'] for x in outputs], dim=0)
-    #     epoch_test_acc = epoch_test_pred.eq(epoch_test_y).view(-1).float().mean()
-    #
-    #     print("*" * 10 + "epoch_test_acc : {}\n ".format(epoch_test_acc))
-    #
-    #     tensorboard_logs = {'epoch_test_loss': epoch_test_loss,
-    #                         "epoch_test_acc": epoch_test_acc}
-    #     return {'epoch_test_loss': epoch_test_loss, 'log': tensorboard_logs}
+        self.log("val_loss", validation_loss, on_step=False, on_epoch=True)
+        self.log("val_acc", validation_acc, on_step=False, on_epoch=True)
 
 
-cuda_index = "0"
-args = parameter_setting(cuda_index)
-# args.drive_download_require = False
-args.drive_download_require = True
-args.project_name = "mnist_mlp_pl_1"
-args.expr_index = 1
-args.layer_number = 3
-args.dataset_name = "MNIST"
+if __name__ == "__main__":
+    cuda_index = "0"
+    args = parameter_setting(cuda_index)
+    # args.drive_download_require = False
+    args.drive_download_require = True
+    args.project_name = "mnist_mlp_pl_1"
+    args.expr_index = 1
+    args.layer_number = 3
+    args.dataset_name = "MNIST"
 
+    logger_name = "-".join(
+        ["p-", args.project_name, "e-", str(args.expr_index), "l_n-", str(args.layer_number), "d_n-", args.dataset_name])
+    logger = TensorBoardLogger("lightning_logs", name=logger_name)
 
-logger_name = "-".join(
-    ["p-", args.project_name, "e-", str(args.expr_index), "l_n-", str(args.layer_number), "d_n-", args.dataset_name])
-logger = TensorBoardLogger("lightning_logs", name=logger_name)
+    model = ClsMNIST(args)
+    trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
 
-model = ClsMNIST(args)
-trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
-
-trainer.fit(model)
+    trainer.fit(model)
