@@ -35,20 +35,20 @@ class CustomizeDataset(Dataset):
         return data_ret, labels_ret
 
 
-def parameter_setting(cuda_index):
+def parameter_setting():
 
     parser = argparse.ArgumentParser()
 
-    parser.set_defaults(gpus='0', max_epochs=2000)
+    parser.set_defaults(gpus='0', max_epochs=200)
     parser.add_argument('--batch_size', default=256)
     parser.add_argument('--no_cuda', default=False)
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--epoch_number', type=int, default=1000)
     parser.add_argument('--lr', default=0.001)
 
-    parser.add_argument('--data_root', default="./datasets/", type=str)
-    parser.add_argument('--pytorch_data_path', default="./pytorch_data/")
-    parser.add_argument('--result_folder', default="./output/", type=str)
+    parser.add_argument('--data_root', default="../datasets/", type=str)
+    parser.add_argument('--pytorch_data_path', default="../pytorch_data/")
+    parser.add_argument('--result_folder', default="../output/", type=str)
     parser.add_argument('--download_require', default=True)
     parser.add_argument('--transform', default=None)
 
@@ -272,7 +272,7 @@ class ClsMNIST(pl.LightningModule):
 
 if __name__ == "__main__":
     cuda_index = "0"
-    args = parameter_setting(cuda_index)
+    args = parameter_setting()
     # args.drive_download_require = False
     args.drive_download_require = True
     args.project_name = "mnist_mlp_pl_1"
