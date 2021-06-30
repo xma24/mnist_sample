@@ -290,6 +290,7 @@ if __name__ == "__main__":
     logger = TensorBoardLogger(args.lightning_log_folder, name=logger_name)
 
     model = ClsMNIST(args)
-    trainer = pl.Trainer(gpus=cuda_index, max_epochs=args.epoch_number)
+    trainer = pl.Trainer(
+        gpus=cuda_index, max_epochs=args.epoch_number, logger=logger)
 
     trainer.fit(model)
